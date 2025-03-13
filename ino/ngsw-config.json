@@ -8,7 +8,6 @@
       "resources": {
         "files": [
           "/favicon.ico",
-          "/index.csr.html",
           "/index.html",
           "/manifest.webmanifest",
           "/*.css",
@@ -22,7 +21,7 @@
       "updateMode": "prefetch",
       "resources": {
         "files": [
-          "/**/*.(svg|cur|jpg|jpeg|png|apng|webp|avif|gif|otf|ttf|woff|woff2)"
+          "/assets/**/*"
         ]
       }
     }
@@ -30,7 +29,7 @@
   "dataGroups": [
     {
       "name": "transacciones-api",
-      "urls": ["https://67b6d34007ba6e590841edfc.mockapi.io/finanzas"],
+      "urls": ["https://67b6d34007ba6e590841edfc.mockapi.io/finanzas2"],
       "cacheConfig": {
         "strategy": "freshness",
         "maxSize": 50,
