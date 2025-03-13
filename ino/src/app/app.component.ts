@@ -16,7 +16,7 @@ export class AppComponent implements OnInit {
   deferredPrompt: any;
   monto: number = 0;
   descripcion: string = '';
-  title: string = 'Gestor Financiero Personal';
+  title: string = 'Ino App';
   showInstallButton = false;
   transacciones: any[] = [];
 
