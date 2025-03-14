@@ -46,6 +46,21 @@ export class FinanzasService {
     }
   }
 
+  async deleteTransaccion(id: number) {
+    if (navigator.onLine) {
+      try {
+        await this.http.delete(`${this.apiURL}/${id}`).toPromise();
+        await this.db.transacciones.delete(id);
+      } catch (error) {
+        console.error('Error al eliminar de la API:', error);
+      }
+    } else {
+      await this.db.transacciones.update(id, { pendienteEliminar: true });
+      console.log('Transacción marcada para eliminar cuando haya internet.');
+    }
+  }
+
+
   // Agregar una nueva transacción
   async addTransaccion(transaccion: any) {
     if (navigator.onLine) {
@@ -66,11 +81,12 @@ export class FinanzasService {
   private async synchronizeTransacciones() {
     if (navigator.onLine) {
       try {
+        // Sincronizar transacciones pendientes de agregar
         const transaccionesPendientes = await this.db.transacciones
           .where('sincronizado')
           .equals(0)
           .toArray();
-
+  
         for (const transaccion of transaccionesPendientes) {
           try {
             const response = await this.http.post<any>(this.apiURL, {
@@ -78,7 +94,7 @@ export class FinanzasService {
               monto: transaccion.monto,
               fecha: transaccion.fecha
             }).toPromise();
-
+  
             if (response) {
               await this.db.transacciones.update(transaccion.id, { sincronizado: 1 });
             }
@@ -86,6 +102,20 @@ export class FinanzasService {
             console.error('Error al sincronizar transacción:', error);
           }
         }
+  
+        // Sincronizar eliminaciones pendientes
+        const transaccionesPendientesEliminar = await this.db.transacciones.toArray();
+        const pendientesEliminar = transaccionesPendientesEliminar.filter(t => t.pendienteEliminar);
+  
+        for (const transaccion of pendientesEliminar) {
+          try {
+            await this.http.delete(`${this.apiURL}/${transaccion.id}`).toPromise();
+            await this.db.transacciones.delete(transaccion.id);
+          } catch (error) {
+            console.error('Error eliminando transacción en la API:', error);
+          }
+        }
+  
       } catch (error) {
         console.error('Error obteniendo transacciones pendientes:', error);
       }

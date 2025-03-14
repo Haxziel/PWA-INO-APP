@@ -1,24 +1,50 @@
 
 
-  <h1 *ngIf="title">Bienvenido a {{ title }}</h1>
+ <!-- <h1 *ngIf="title">Bienvenido a {{ title }}</h1> -->
 
 <!-- Formulario para agregar una transacción -->
 <form (submit)="agregarTransaccion()">
-  <label for="descripcion">Descripción:</label>
-  <input type="text" id="descripcion" [(ngModel)]="descripcion" required>
   
-  <label for="monto">Monto:</label>
-  <input type="number" id="monto" [(ngModel)]="monto" required>
+  <label for="descripcion" class="form-label" for="typeText">Descripción:</label>
+  <input type="text" id="descripcion" [(ngModel)]="descripcion" required class="form-control">
+  
+
+
+  <label for="monto" class="form-label" for="typeText">Monto:</label>
+  <input type="number" id="monto" [(ngModel)]="monto" required class="form-control">
+
+  <br>
 
   <button type="submit" class="btn btn-success" data-mdb-ripple-init>Agregar Transacción</button>
 </form>
 
 <!-- Mostrar lista de transacciones -->
-<ul>
-  <li *ngFor="let transaccion of transacciones">
-    {{ transaccion.descripcion }} - ${{ transaccion.monto }} - {{ transaccion.fecha }}
-  </li>
-</ul>
+<div class="table-responsive">
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Descripción</th>
+        <th>Monto</th>
+        <th>Fecha</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let transaccion of transacciones">
+        <td>{{ transaccion.descripcion }}</td>
+        <td>${{ transaccion.monto }}</td>
+        <td>{{ transaccion.fecha }}</td>
+        <td>
+          <button class="btn btn-warning btn-sm me-2"><i class="fas fa-pencil-alt"></i></button>
+          <button class="btn btn-danger btn-sm" (click)="eliminarTransaccion(transaccion.id)">
+            <i class="fas fa-trash"></i>
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
       <p>App1. 🎉</p>
       <!-- Botón para instalar la PWA -->
       <h1>aqui deberia haber un boton pa instalar la PWA</h1>

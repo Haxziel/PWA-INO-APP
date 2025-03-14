@@ -62,6 +62,17 @@ export class AppComponent implements OnInit {
     }
   }
 
+  async eliminarTransaccion(id: number) {
+    try {
+      await this.finanzasService.deleteTransaccion(id);
+      this.transacciones = this.transacciones.filter(t => t.id !== id);
+    } catch (error) {
+      console.error('Error al eliminar transacción:', error);
+    }
+  }
+
+  
+
   installPWA() {
     if (this.deferredPrompt) {
       this.deferredPrompt.prompt();
