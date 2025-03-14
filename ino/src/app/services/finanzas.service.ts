@@ -8,8 +8,8 @@ export class FinanzasDB extends Dexie {
 
   constructor() {
     super('FinanzasDB');
-    this.version(1).stores({
-      transacciones: '++id, descripcion, monto, fecha, sincronizado'
+    this.version(2).stores({
+      transacciones: '++id, descripcion, monto, fecha, sincronizado, pendienteEliminar'
     });
     this.transacciones = this.table('transacciones');
   }
@@ -33,33 +33,48 @@ export class FinanzasService {
     if (navigator.onLine) {
       try {
         const data = await this.http.get<any[]>(this.apiURL).toPromise();
-        const transacciones = data ?? []; // Evita undefined
-        await this.db.transacciones.clear(); // Limpiar IndexedDB antes de guardar
+        const transacciones = data ?? [];
+  
+        await this.db.transacciones.clear();
         await this.db.transacciones.bulkPut(transacciones);
+        
         return transacciones;
       } catch (error) {
         console.error('Error obteniendo transacciones en línea:', error);
-        return await this.db.transacciones.toArray(); // Retorna datos locales si falla la API
+        return await this.db.transacciones.where('pendienteEliminar').notEqual(1).toArray(); 
       }
     } else {
-      return await this.db.transacciones.toArray();
+      // Filtra las transacciones eliminadas
+      return await this.db.transacciones.where('pendienteEliminar').notEqual(1).toArray();
     }
   }
 
+  // Método para eliminar una transacción
   async deleteTransaccion(id: number) {
     if (navigator.onLine) {
+      // Si hay conexión, eliminar directamente de la API y de IndexedDB
       try {
         await this.http.delete(`${this.apiURL}/${id}`).toPromise();
         await this.db.transacciones.delete(id);
+        console.log(`Transacción ${id} eliminada de la API y de IndexedDB.`);
       } catch (error) {
-        console.error('Error al eliminar de la API:', error);
+        console.error('Error al eliminar transacción de la API:', error);
       }
     } else {
-      await this.db.transacciones.update(id, { pendienteEliminar: true });
-      console.log('Transacción marcada para eliminar cuando haya internet.');
+      // Si está offline, marcarla como "pendiente de eliminar"
+      try {
+        const transaccion = await this.db.transacciones.get(id);
+        if (transaccion) {
+          await this.db.transacciones.update(id, { pendienteEliminar: 1 });
+          console.log(`Transacción ${id} marcada para eliminar cuando haya internet.`);
+        } else {
+          console.warn(`No se encontró la transacción ${id} en IndexedDB.`);
+        }
+      } catch (error) {
+        console.error('Error al marcar transacción para eliminar offline:', error);
+      }
     }
   }
-
 
   // Agregar una nueva transacción
   async addTransaccion(transaccion: any) {
@@ -82,10 +97,7 @@ export class FinanzasService {
     if (navigator.onLine) {
       try {
         // Sincronizar transacciones pendientes de agregar
-        const transaccionesPendientes = await this.db.transacciones
-          .where('sincronizado')
-          .equals(0)
-          .toArray();
+        const transaccionesPendientes = await this.db.transacciones.where('sincronizado').equals(0).toArray();
   
         for (const transaccion of transaccionesPendientes) {
           try {
@@ -103,21 +115,20 @@ export class FinanzasService {
           }
         }
   
-        // Sincronizar eliminaciones pendientes
-        const transaccionesPendientesEliminar = await this.db.transacciones.toArray();
-        const pendientesEliminar = transaccionesPendientesEliminar.filter(t => t.pendienteEliminar);
-  
-        for (const transaccion of pendientesEliminar) {
+        // Eliminar de la API las transacciones marcadas para borrar
+        const transaccionesPendientesEliminar = await this.db.transacciones.where('pendienteEliminar').equals(1).toArray();
+        
+        for (const transaccion of transaccionesPendientesEliminar) {
           try {
             await this.http.delete(`${this.apiURL}/${transaccion.id}`).toPromise();
             await this.db.transacciones.delete(transaccion.id);
+            console.log(`Transacción ${transaccion.id} eliminada de la API y de IndexedDB.`);
           } catch (error) {
             console.error('Error eliminando transacción en la API:', error);
           }
         }
-  
       } catch (error) {
-        console.error('Error obteniendo transacciones pendientes:', error);
+        console.error('Error sincronizando transacciones:', error);
       }
     }
   }
