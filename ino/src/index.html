@@ -29,6 +29,31 @@
 
 
 
+<style>
+  /* Asegúrate de que el body ocupe toda la altura de la ventana */
+    html, body {
+      height: 100%;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* El contenido principal debe crecer para ocupar el espacio disponible */
+    .main-content {
+      flex: 1;
+    }
+    
+    /* Estilos del footer (opcional) */
+    footer {
+      background-color: #1e1e1e;
+      padding: 20px;
+      text-align: center;
+      color: white;
+    }
+    </style>
+
+
+
 
 
 </head>
@@ -85,7 +110,7 @@
         <a
           data-mdb-ripple-init
           class="btn btn-outline-light" data-mdb-ripple-init data-mdb-ripple-color="dark"
-          href="https://github.com/mdbootstrap/mdb-ui-kit"
+          href="preguntasfrecuentes.html"
           role="button"
           >?</a>
       </div>
@@ -96,7 +121,7 @@
 </nav>
 <!-- Navbar -->
 
-<div class="container mt-2">
+<div class="container mt-2 main-content">
   <h1 class="text-black">Registro de Gastos</h1>
 
 
