@@ -20,7 +20,7 @@ export class AppComponent implements OnInit {
   showInstallButton = false;
   transacciones: any[] = [];
 
-  constructor(private finanzasService: FinanzasService) {} // Se usa constructor en lugar de inject()
+  constructor(private finanzasService: FinanzasService) {}
 
   ngOnInit() {
     window.addEventListener('beforeinstallprompt', (event: Event) => {
@@ -46,7 +46,7 @@ export class AppComponent implements OnInit {
         monto: this.monto,
         descripcion: this.descripcion,
         fecha: new Date(),
-        sincronizado: 0, // IndexedDB maneja mejor 0 en lugar de false
+        sincronizado: 0,
       };
 
       try {
@@ -70,8 +70,6 @@ export class AppComponent implements OnInit {
       console.error('Error al eliminar transacción:', error);
     }
   }
-
-  
 
   installPWA() {
     if (this.deferredPrompt) {

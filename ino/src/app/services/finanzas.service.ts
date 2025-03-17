@@ -33,20 +33,29 @@ export class FinanzasService {
     if (navigator.onLine) {
       try {
         const data = await this.http.get<any[]>(this.apiURL).toPromise();
-        const transacciones = data ?? [];
-  
-        await this.db.transacciones.clear();
-        await this.db.transacciones.bulkPut(transacciones);
-        
-        return transacciones;
+        if (data) {
+          await this.db.transacciones.clear(); 
+          await this.db.transacciones.bulkPut(data);
+          
+          localStorage.setItem('transaccionesBackup', JSON.stringify(data)); // Copia de seguridad en localStorage
+        }
       } catch (error) {
         console.error('Error obteniendo transacciones en línea:', error);
-        return await this.db.transacciones.where('pendienteEliminar').notEqual(1).toArray(); 
       }
-    } else {
-      // Filtra las transacciones eliminadas
-      return await this.db.transacciones.where('pendienteEliminar').notEqual(1).toArray();
     }
+  
+    // Intentar obtener desde IndexedDB
+    let transacciones = await this.db.transacciones.where('pendienteEliminar').notEqual(1).toArray();
+    
+    // Si IndexedDB falla, intenta cargar desde LocalStorage
+    if (transacciones.length === 0) {
+      const backup = localStorage.getItem('transaccionesBackup');
+      if (backup) {
+        transacciones = JSON.parse(backup);
+      }
+    }
+  
+    return transacciones;
   }
 
   // Método para eliminar una transacción
@@ -61,12 +70,26 @@ export class FinanzasService {
         console.error('Error al eliminar transacción de la API:', error);
       }
     } else {
-      // Si está offline, marcarla como "pendiente de eliminar"
+      // Si está offline, marcarla como "pendiente de eliminar" y actualizar localStorage
       try {
         const transaccion = await this.db.transacciones.get(id);
         if (transaccion) {
+          // Marcar como pendiente de eliminar en IndexedDB
           await this.db.transacciones.update(id, { pendienteEliminar: 1 });
-          console.log(`Transacción ${id} marcada para eliminar cuando haya internet.`);
+  
+          // Obtener la copia de seguridad actual de localStorage
+          const backup = localStorage.getItem('transaccionesBackup');
+          if (backup) {
+            let transaccionesBackup = JSON.parse(backup);
+  
+            // Filtrar la transacción eliminada de la copia de seguridad
+            transaccionesBackup = transaccionesBackup.filter((t: any) => t.id !== id);
+  
+            // Actualizar localStorage con la nueva lista
+            localStorage.setItem('transaccionesBackup', JSON.stringify(transaccionesBackup));
+          }
+  
+          console.log(`Transacción ${id} marcada para eliminar y removida de localStorage.`);
         } else {
           console.warn(`No se encontró la transacción ${id} en IndexedDB.`);
         }
