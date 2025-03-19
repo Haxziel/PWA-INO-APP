@@ -1,21 +1,24 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { FinanzasService } from './services/finanzas.service';
+import { DashboardComponent } from './dashboard/dashboard.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterModule, FormsModule, CommonModule],
+  imports: [RouterModule, FormsModule, CommonModule, DashboardComponent],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
 })
 export class AppComponent implements OnInit {
+  @ViewChild(DashboardComponent) dashboardComponent!: DashboardComponent; // Referencia al DashboardComponent
   isInstallable = false;
   deferredPrompt: any;
-  monto: number = 0;
-  descripcion: string = '';
+  monto: number | null = null; // Inicializar como null para que no muestre 0
+  descripcion: string = ''; // Inicializar como cadena vacía
+  tipo: string = ''; // Valor por defecto para el select
   title: string = 'Ino App';
   showInstallButton = false;
   transacciones: any[] = [];
@@ -41,10 +44,11 @@ export class AppComponent implements OnInit {
   }
 
   async agregarTransaccion() {
-    if (this.monto && this.descripcion) {
+    if (this.monto && this.descripcion && this.tipo) {
       const nuevaTransaccion = {
         monto: this.monto,
         descripcion: this.descripcion,
+        tipo: this.tipo,
         fecha: new Date(),
         sincronizado: 0,
       };
@@ -52,13 +56,15 @@ export class AppComponent implements OnInit {
       try {
         await this.finanzasService.addTransaccion(nuevaTransaccion);
         this.transacciones.push(nuevaTransaccion);
-        this.monto = 0;
+        this.monto = null;
         this.descripcion = '';
+        this.tipo = '';
+        await this.dashboardComponent.refrescarDatos(); // Refrescar datos del dashboard
       } catch (error) {
         console.error('Error al agregar transacción:', error);
       }
     } else {
-      console.log('Por favor, complete el monto y la descripción.');
+      console.log('Por favor, complete el monto, la descripción y el tipo.');
     }
   }
 
@@ -66,6 +72,7 @@ export class AppComponent implements OnInit {
     try {
       await this.finanzasService.deleteTransaccion(id);
       this.transacciones = this.transacciones.filter(t => t.id !== id);
+      await this.dashboardComponent.refrescarDatos(); // Refrescar datos del dashboard
     } catch (error) {
       console.error('Error al eliminar transacción:', error);
     }

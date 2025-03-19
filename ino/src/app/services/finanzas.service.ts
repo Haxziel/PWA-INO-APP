@@ -8,8 +8,8 @@ export class FinanzasDB extends Dexie {
 
   constructor() {
     super('FinanzasDB');
-    this.version(2).stores({
-      transacciones: '++id, descripcion, monto, fecha, sincronizado, pendienteEliminar'
+    this.version(3).stores({ // Incrementa la versión de la base de datos
+      transacciones: '++id, descripcion, monto, tipo, fecha, sincronizado, pendienteEliminar'
     });
     this.transacciones = this.table('transacciones');
   }
@@ -127,6 +127,7 @@ export class FinanzasService {
             const response = await this.http.post<any>(this.apiURL, {
               descripcion: transaccion.descripcion,
               monto: transaccion.monto,
+              tipo: transaccion.tipo, // Incluir el tipo
               fecha: transaccion.fecha
             }).toPromise();
   
