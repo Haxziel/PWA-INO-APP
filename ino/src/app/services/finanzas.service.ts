@@ -111,6 +111,13 @@ export class FinanzasService {
     } else {
       const nuevaTransaccion = { ...transaccion, sincronizado: 0 };
       await this.db.transacciones.add(nuevaTransaccion);
+      
+      // Actualizar la copia de seguridad en localStorage
+      const backup = localStorage.getItem('transaccionesBackup');
+      let transaccionesBackup = backup ? JSON.parse(backup) : [];
+      transaccionesBackup.push(nuevaTransaccion);
+      localStorage.setItem('transaccionesBackup', JSON.stringify(transaccionesBackup));
+      
       console.log('Guardado offline. Pendiente de sincronizar.');
     }
   }
@@ -119,38 +126,60 @@ export class FinanzasService {
   private async synchronizeTransacciones() {
     if (navigator.onLine) {
       try {
-        // Sincronizar transacciones pendientes de agregar
-        const transaccionesPendientes = await this.db.transacciones.where('sincronizado').equals(0).toArray();
+        // Obtener transacciones pendientes de agregar (sincronizado: 0) y que no estén marcadas para eliminar (pendienteEliminar: 0 o undefined)
+        const transaccionesPendientes = await this.db.transacciones
+          .where('sincronizado')
+          .equals(0)
+          .filter(transaccion => !transaccion.pendienteEliminar) // Solo transacciones no marcadas para eliminar
+          .toArray();
   
+        // Sincronizar transacciones pendientes de agregar
         for (const transaccion of transaccionesPendientes) {
           try {
             const response = await this.http.post<any>(this.apiURL, {
               descripcion: transaccion.descripcion,
               monto: transaccion.monto,
-              tipo: transaccion.tipo, // Incluir el tipo
+              tipo: transaccion.tipo,
               fecha: transaccion.fecha
             }).toPromise();
   
             if (response) {
-              await this.db.transacciones.update(transaccion.id, { sincronizado: 1 });
+              await this.db.transacciones.update(transaccion.id, { sincronizado: 1 }); // Marcar como sincronizado
             }
           } catch (error) {
             console.error('Error al sincronizar transacción:', error);
           }
         }
   
-        // Eliminar de la API las transacciones marcadas para borrar
-        const transaccionesPendientesEliminar = await this.db.transacciones.where('pendienteEliminar').equals(1).toArray();
-        
+        // Obtener transacciones marcadas para eliminar (pendienteEliminar: 1)
+        const transaccionesPendientesEliminar = await this.db.transacciones
+          .where('pendienteEliminar')
+          .equals(1)
+          .toArray();
+  
+        // Eliminar transacciones marcadas para borrar
         for (const transaccion of transaccionesPendientesEliminar) {
           try {
-            await this.http.delete(`${this.apiURL}/${transaccion.id}`).toPromise();
-            await this.db.transacciones.delete(transaccion.id);
+            await this.http.delete(`${this.apiURL}/${transaccion.id}`).toPromise(); // Eliminar de la API
+            await this.db.transacciones.delete(transaccion.id); // Eliminar de IndexedDB
             console.log(`Transacción ${transaccion.id} eliminada de la API y de IndexedDB.`);
           } catch (error) {
             console.error('Error eliminando transacción en la API:', error);
           }
         }
+  
+        // Eliminar transacciones que estaban pendientes de sincronizar pero fueron marcadas para eliminar
+        const transaccionesPendientesSincronizarPeroEliminar = await this.db.transacciones
+          .where('sincronizado')
+          .equals(0)
+          .and(transaccion => transaccion.pendienteEliminar === 1)
+          .toArray();
+  
+        for (const transaccion of transaccionesPendientesSincronizarPeroEliminar) {
+          await this.db.transacciones.delete(transaccion.id); // Eliminar de IndexedDB sin sincronizar
+          console.log(`Transacción ${transaccion.id} eliminada de IndexedDB sin sincronizar.`);
+        }
+  
       } catch (error) {
         console.error('Error sincronizando transacciones:', error);
       }

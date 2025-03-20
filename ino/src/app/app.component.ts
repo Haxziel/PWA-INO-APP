@@ -52,13 +52,17 @@ export class AppComponent implements OnInit {
         fecha: new Date(),
         sincronizado: 0,
       };
-
+  
       try {
         await this.finanzasService.addTransaccion(nuevaTransaccion);
-        this.transacciones.push(nuevaTransaccion);
+        
+        // Actualizar la lista de transacciones en la vista
+        this.transacciones = await this.finanzasService.getTransacciones();
+        
         this.monto = null;
         this.descripcion = '';
         this.tipo = '';
+        
         await this.dashboardComponent.refrescarDatos(); // Refrescar datos del dashboard
       } catch (error) {
         console.error('Error al agregar transacción:', error);
