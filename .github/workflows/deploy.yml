@@ -5,7 +5,6 @@ on:
     branches:
       - pete1  # Cambia a la rama que uses (main, master, etc.)
 
-
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -19,6 +18,9 @@ jobs:
         with:
           node-version: 18  # Usa la versión de Node.js que necesites
 
+      - name: Navigate to /ino directory
+        run: cd ino  # Cambia a la carpeta /ino
+
       - name: Install dependencies
         run: npm install
 
@@ -29,4 +31,4 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist/ino/browser  # Cambia <nombre-de-tu-proyecto> por el nombre de tu proyecto Angular
+          publish_dir: ./ino/dist/<nombre-de-tu-proyecto>  # Ajusta la ruta según la ubicación de la carpeta dist
