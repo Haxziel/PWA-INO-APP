@@ -1,13 +1,15 @@
 {
   "name": "ino",
   "version": "0.0.0",
+  "homepage": "https://haxziel.github.io/PWA-INO-APP/",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "deploy": "ng build --configuration production && npx gh-pages -d dist/ino/browser"
+      "build": "ng build --configuration production",
+  "deploy": "gh-pages -d dist/ino/browser"
   },
   "private": true,
   "dependencies": {
