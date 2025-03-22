@@ -18,6 +18,9 @@ jobs:
       with:
         node-version: '18'  # Usa una versión LTS de Node.js (16 o 18)
 
+    - name: Navigate to project directory
+      run: cd PWA-INO-APP  # Cambia 'PWA-INO-APP' por el nombre de la carpeta de tu proyecto
+
     - name: Install dependencies
       run: npm install
 
@@ -31,4 +34,4 @@ jobs:
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: dist/ino/browser  # Asegúrate de que esta ruta sea correcta
+        publish_dir: PWA-INO-APP/dist/ino/browser  # Asegúrate de que esta ruta sea correcta
