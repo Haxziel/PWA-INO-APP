@@ -16,7 +16,7 @@ jobs:
     - name: Set up Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: '22.13.1'  # Cambia esto a la versión de Node.js que uses
+        node-version: '18'  # Usa una versión LTS de Node.js (16 o 18)
 
     - name: Install dependencies
       run: npm install
@@ -24,8 +24,11 @@ jobs:
     - name: Build Angular project
       run: npm run build -- --configuration production
 
+    - name: Verify build output
+      run: ls -R dist  # Lista el contenido de la carpeta dist para verificar que la ruta es correcta
+
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: dist/ino/browser  # Cambia 'your-project-name' por el nombre de tu proyecto Angular
+        publish_dir: dist/ino/browser  # Asegúrate de que esta ruta sea correcta
