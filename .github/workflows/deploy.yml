@@ -19,7 +19,7 @@ jobs:
         node-version: '18'  # Usa una versión LTS de Node.js (16 o 18)
 
     - name: Navigate to project directory
-      run: cd PWA-INO-APP  # Cambia 'PWA-INO-APP' por el nombre de la carpeta de tu proyecto
+      run: cd PWA-INO-APP/ino  # Cambia 'PWA-INO-APP' por el nombre de la carpeta de tu proyecto
 
     - name: Install dependencies
       run: npm install
