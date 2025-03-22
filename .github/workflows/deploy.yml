@@ -19,7 +19,7 @@ jobs:
           node-version: 18  # Usa la versión de Node.js que necesites
 
       - name: Navigate to /ino directory
-        run: cd ino  # Cambia a la carpeta /ino
+        run: cd PWA-INO-APP/ino  # Cambia a la carpeta /PWA-INO-APP/ino
 
       - name: Install dependencies
         run: npm install
@@ -31,4 +31,4 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./ino/dist/ino/browser  # Ajusta la ruta según la ubicación de la carpeta dist
+          publish_dir: ./PWA-INO-APP/ino/dist/ino/browser  # Ajusta la ruta según la ubicación de la carpeta dist
