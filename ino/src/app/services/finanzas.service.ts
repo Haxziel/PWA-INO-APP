@@ -33,11 +33,21 @@ export class FinanzasService {
     if (navigator.onLine) {
       try {
         const data = await this.http.get<any[]>(this.apiURL).toPromise();
+        console.log('Datos de la API:', data); // Verifica la respuesta de la API
         if (data) {
-          await this.db.transacciones.clear(); 
-          await this.db.transacciones.bulkPut(data);
-          
-          localStorage.setItem('transaccionesBackup', JSON.stringify(data)); // Copia de seguridad en localStorage
+          const transaccionesMapeadas = data.map(t => {
+            // Convierte `monto` a número
+            const monto = t.monto ? parseFloat(t.monto) : 0;
+            return {
+              ...t,
+              monto: monto // Asignar el valor de `monto` como número
+            };
+          });
+  
+          await this.db.transacciones.clear();
+          await this.db.transacciones.bulkPut(transaccionesMapeadas);
+  
+          localStorage.setItem('transaccionesBackup', JSON.stringify(transaccionesMapeadas));
         }
       } catch (error) {
         console.error('Error obteniendo transacciones en línea:', error);
@@ -46,7 +56,7 @@ export class FinanzasService {
   
     // Intentar obtener desde IndexedDB
     let transacciones = await this.db.transacciones.where('pendienteEliminar').notEqual(1).toArray();
-    
+  
     // Si IndexedDB falla, intenta cargar desde LocalStorage
     if (transacciones.length === 0) {
       const backup = localStorage.getItem('transaccionesBackup');
@@ -55,9 +65,10 @@ export class FinanzasService {
       }
     }
   
+    console.log('Transacciones cargadas:', transacciones); // Verifica las transacciones cargadas
     return transacciones;
   }
-
+  
   // Método para eliminar una transacción
   async deleteTransaccion(id: number) {
     if (navigator.onLine) {

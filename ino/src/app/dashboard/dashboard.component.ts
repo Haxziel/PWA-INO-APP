@@ -54,35 +54,6 @@ export class DashboardComponent implements OnInit {
 
   lineChartType: ChartType = 'line';
 
-  // Gráfico de Distribución de Gastos e Ingresos
-  pieChartData: ChartConfiguration['data'] = {
-    labels: ['Gastos', 'Ingresos'],
-    datasets: [
-      {
-        data: [],
-        backgroundColor: ['rgba(255, 99, 132, 0.2)', 'rgba(75, 192, 192, 0.2)'],
-        borderColor: ['rgba(255, 99, 132, 1)', 'rgba(75, 192, 192, 1)'],
-        borderWidth: 1
-      }
-    ]
-  };
-
-  pieChartOptions: ChartConfiguration['options'] = {
-    responsive: true,
-    plugins: {
-      legend: {
-        display: true,
-        position: 'top',
-      },
-      title: {
-        display: true,
-        text: 'Distribución de Gastos e Ingresos'
-      }
-    }
-  };
-
-  pieChartType: ChartType = 'pie';
-
   constructor(private finanzasService: FinanzasService) {}
 
   async ngOnInit() {
@@ -98,12 +69,12 @@ export class DashboardComponent implements OnInit {
   calcularTotales(transacciones: any[]) {
     this.gastoTotal = transacciones
       .filter(t => t.tipo === 'female')
-      .reduce((sum, t) => sum + t.monto, 0);
-
+      .reduce((sum, t) => sum + parseFloat(t.monto), 0);
+  
     this.ingresoTotal = transacciones
       .filter(t => t.tipo === 'male')
-      .reduce((sum, t) => sum + t.monto, 0);
-
+      .reduce((sum, t) => sum + parseFloat(t.monto), 0);
+  
     this.balanceActual = this.ingresoTotal - this.gastoTotal;
     this.proyeccionAhorro = this.balanceActual * 12; // Proyección anual
   }
@@ -122,10 +93,7 @@ export class DashboardComponent implements OnInit {
     this.lineChartData.datasets[0].data = saldos;
     this.lineChartData.labels = transacciones.map(t => new Date(t.fecha).toLocaleDateString());
 
-    // Distribución de Gastos e Ingresos
-    this.pieChartData.datasets[0].data = [this.gastoTotal, this.ingresoTotal];
-
-    // Forzar la actualización de los gráficos
+    // Forzar la actualización del gráfico
     if (this.chart) {
       this.chart.update();
     }
