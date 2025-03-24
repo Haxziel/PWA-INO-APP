@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { FinanzasService } from './services/finanzas.service';
 import { DashboardComponent } from './dashboard/dashboard.component';
-import { SpeedInsights } from "@vercel/speed-insights/next"
 
 @Component({
   selector: 'app-root',
